@@ -9,23 +9,17 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  modules:['@nuxtjs/tailwindcss','@nuxtjs/supabase'],
+  modules: ['@nuxtjs/tailwindcss', '@nuxtjs/supabase'],
   supabase: {
     url: process.env.SUPABASE_URL,
     key: process.env.SUPABASE_KEY,
     redirectOptions: {
       login: '/login',
       callback: '/userdashboard',
-      exclude: ['/', '/ourstory','/login/signup'],
-      
+      exclude: ['/', '/ourstory', '/login/signup'],
     },
   },
-  
-
-  
-
-   // ... other configs
-   build: {
+  build: {
     transpile: ['@toast-ui/editor']
   },
   vite: {
@@ -36,9 +30,4 @@ export default defineNuxtConfig({
       noExternal: ['@toast-ui/editor']
     }
   },
- 
-
 })
-// router: {
-  //   middleware: ['auth'],
-  // },
