@@ -39,7 +39,6 @@ onMounted(async () => {
   }
 })
 
-// Expose methods to parent component
 defineExpose({
   getMarkdown: () => editorInstance.value?.getMarkdown() || '',
   setMarkdown: (markdown: string) => editorInstance.value?.setMarkdown(markdown)
@@ -53,9 +52,4 @@ defineExpose({
 </template>
 
 
-})
-</script>
 
-<template>
-  <div ref="editorElement"></div>
-</template>
