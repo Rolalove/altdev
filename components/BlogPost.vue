@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useSupabaseClient } from '#imports'
 
+
 interface Post {
   id: number;
   title: string;
@@ -10,7 +11,13 @@ interface Post {
   likes: number;
   shares: number;
   comments: number;
+  bookmarks: number;
   created_at: string;
+  author_username: string;
+  author_avatar: string;
+  liked: boolean;
+  shared: boolean;
+  bookmarked: boolean;
 }
 
 const supabase = useSupabaseClient()
