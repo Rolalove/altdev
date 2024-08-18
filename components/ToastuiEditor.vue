@@ -1,41 +1,58 @@
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import { ref, onMounted, watch } from 'vue'
+import type { Editor } from '@toast-ui/editor'
 
-const editorElement = ref(null)
-const editorInstance = ref(null)
+const editorElement = ref<HTMLElement | null>(null)
+const editorInstance = ref<Editor | null>(null)
 
 const props = defineProps({
   modelValue: { type: String, default: '' }
 })
 
-const emit = defineEmits(['update:modelValue', 'htmlContent'])
+const emit = defineEmits(['update:modelValue'])
 
 onMounted(async () => {
-  const { default: Editor } = await import('@toast-ui/editor')
+  await nextTick() // Add this line
+  const { default: ToastEditor } = await import('@toast-ui/editor')
   await import('@toast-ui/editor/dist/toastui-editor.css')
 
-  editorInstance.value = new Editor({
-    el: editorElement.value,
-    height: "65vh",
-    initialEditType: 'markdown',
-    placeholder: "What's on your mind?",
-    previewStyle: 'tab',
-    initialValue: props.modelValue,
-    toolbarItems: [
-      ['heading', 'bold', 'italic', 'strike'],
-      ['hr', 'quote'],
-      ['ul', 'ol', 'task', 'indent', 'outdent'],
-      ['table', 'image', 'link'],
-      ['code', 'codeblock'],
-    ]
-  })
+  if (editorElement.value) {
+    editorInstance.value = new ToastEditor({
+      el: editorElement.value,
+      height: "65vh",
+      initialEditType: 'markdown',
+      placeholder: "What's on your mind Altdever",
+      previewStyle: 'tab',
+      initialValue: props.modelValue,
+      toolbarItems: [
+        ['heading', 'bold', 'italic', 'strike'],
+        ['hr', 'quote'],
+        ['ul', 'ol', 'task', 'indent', 'outdent'],
+        ['table', 'image', 'link'],
+        ['code', 'codeblock'],
+      ]
+    })
 
-  editorInstance.value.on('change', () => {
-    const markdown = editorInstance.value.getMarkdown()
-    const html = editorInstance.value.getHTML()
-    emit('update:modelValue', markdown)
-    emit('htmlContent', html)
-  })
+    editorInstance.value.on('change', () => {
+      emit('update:modelValue', editorInstance.value!.getMarkdown())
+    })
+  }
+})
+
+// Expose methods to parent component
+defineExpose({
+  getMarkdown: () => editorInstance.value?.getMarkdown() || '',
+  setMarkdown: (markdown: string) => editorInstance.value?.setMarkdown(markdown)
+})
+</script>
+
+<template>
+  <ClientOnly>
+    <div ref="editorElement"></div>
+  </ClientOnly>
+</template>
+
+
 })
 </script>
 
