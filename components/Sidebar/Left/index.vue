@@ -11,7 +11,8 @@ const { defaultTransition } = useTransition()
 //         required: true
 //     }
 // })
-
+import { useSupabaseAuth } from '@/composables/useAuth'
+const { signOut } = useSupabaseAuth()
 
 </script>
 <template>
@@ -60,7 +61,7 @@ const { defaultTransition } = useTransition()
 
         
         <div class="mt-2 space-y-3">
-      <NuxtLink to="/profile">
+      <NuxtLink to="/profilecreate">
         <SidebarLeftTab active  >
           <template v-slot:icon>
             <Account />
@@ -94,6 +95,19 @@ const { defaultTransition } = useTransition()
                 </template>
             </SidebarLeftTab>
         </NuxtLink>
+        </div>
+        <div class="mt-2 space-y-3 ">
+            <button  @click="signOut">
+            <SidebarLeftTab active>
+                <template v-slot:icon>
+                    <More />
+                </template>
+                <template v-slot:name >
+                    Logout
+                   
+                </template>
+            </SidebarLeftTab>
+            </button>
         </div>
 
 

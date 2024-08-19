@@ -53,7 +53,7 @@ export const useSupabaseAuth = () => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-        redirectTo: '/userdashboard'
+        redirectTo: window.location.origin
       },
       })
       if (error) throw error

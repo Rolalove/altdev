@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useSupabaseClient } from '#imports'
 
 interface Database {
@@ -9,30 +8,35 @@ interface Database {
         Row: {
           id: number
           title: string
-          content: string
-          html_content: string
+          content: string // This will store markdown content
           image_path: string | null
           author_id: string
+          author_username: string
+          author_avatar: string
           created_at: string
+          tags: string[]
         }
         Insert: {
           title: string
-          content: string
-          html_content: string
+          content: string // This will store markdown content
           image_path?: string | null
           author_id: string
+          author_username: string
+          author_avatar: string
+          tags: string[]
         }
       }
     }
   }
 }
-
 const supabase = useSupabaseClient<Database>()
 const title = ref<string>('')
 const content = ref<string>('')
-const htmlContent = ref<string>('')
+const tags = ref<string>('')
 const imageFile = ref<File | null>(null)
 const imageUrl = ref<string>('')
+  const editorRef = ref(null)
+
 
 const onImageChange = (event: Event) => {
   const target = event.target as HTMLInputElement
@@ -67,26 +71,31 @@ const handlePost = async () => {
 
       image_path = publicUrl
     }
-
+  
+    const markdownContent = editorRef.value?.getMarkdown() || ''
+    const currentDate = new Date().toISOString()
     const { data: responseData, error } = await supabase
       .from('blog_posts')
       .insert({
         title: title.value,
-        content: content.value,
-        html_content: htmlContent.value,
+        content: markdownContent,
         image_path,
+        tags: tags.value.split(',').map(tag => tag.trim()),
         author_id: user.id,
+        author_username: user.user_metadata.username || user.email?.split('@')[0] || 'Anonymous',
+        author_avatar: user.user_metadata.avatar_url,
+        created_at: currentDate
       })
-
     if (error) throw error
 
+    
     title.value = ''
     content.value = ''
-    htmlContent.value = ''
+    tags.value = ''
     imageFile.value = null
     imageUrl.value = ''
     alert('Post created successfully!')
-    await navigateTo('/userdashboard')
+     navigateTo('/userdashboard')
   } catch (error) {
     console.error('Error creating post: ', error)
     alert('Failed to create post. Please try again.')
@@ -112,12 +121,14 @@ const handlePost = async () => {
       <div class="flex items-center mb-4">
         <input v-model="title" type="text" placeholder="Title" class="flex-1 border p-1 rounded">
       </div>
+      <input v-model='tags' placeholder='Tags (comma-seperated)' class="flex-1 border p-1 rounded"/>
       <ClientOnly>
-        <ToastuiEditor
-          v-model="content"
-          @htmlContent="htmlContent = $event"
-        />
-      </ClientOnly>
+        <ToastuiEditor  ref="editorRef"
+    v-model="content"
+  />
+
+  </ClientOnly>
+     
       <div class="text-right mt-2">
         <button @click='handlePost' class='px-10 text-lg font-bold border rounded-full py-2 bg-[#408a43]'>
           Post

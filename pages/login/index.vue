@@ -6,6 +6,7 @@ const { signIn, signInWithOAuth, resetPasswordForEmail } = useSupabaseAuth()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const isLoading = ref(false)
 
 const isEmailValid = computed(() => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -25,11 +26,14 @@ const handleSignIn = async () => {
     errorMessage.value = 'Please correct the form errors before submitting.'
     return
   }
+  isLoading.value = true
 
   try {
     await signIn(email.value, password.value)
   } catch (error) {
     errorMessage.value = error.message
+  }finally {
+    isLoading.value = false
   }
 }
 
@@ -74,7 +78,10 @@ const forgotPassword = async () => {
           <a class="text-right mt-5 text-[#408a43] text-sm font-medium" href="#" @click.prevent="forgotPassword">Forgot
             Password?</a>
           <button type="submit" class="w-full rounded bg-[#408a43] py-1 text-lg font-semibold mt-2"
-            :disabled="!isFormValid">Sign In</button>
+            :disabled="!isFormValid || isLoading"">
+            <span v-if="!isLoading">Sign In</span>
+  <span v-else>Signing In...</span>
+            </button>
           <p v-if="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</p>
         </form>
         <div class="container">

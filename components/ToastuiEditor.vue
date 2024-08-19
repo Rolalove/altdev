@@ -12,7 +12,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 onMounted(async () => {
-  await nextTick() // Add this line
+  await nextTick() 
   const { default: ToastEditor } = await import('@toast-ui/editor')
   await import('@toast-ui/editor/dist/toastui-editor.css')
 
