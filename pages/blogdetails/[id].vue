@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useRoute } from 'vue-router'
-import { Viewer } from '@toast-ui/editor'
+import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer'
 const supabase = useSupabaseClient()
 const route = useRoute()
 
