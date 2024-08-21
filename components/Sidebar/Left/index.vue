@@ -4,6 +4,8 @@ import Bookmark from 'vue-material-design-icons/BookmarkOutline.vue';
 import Account from 'vue-material-design-icons/AccountOutline.vue';
 import More from 'vue-material-design-icons/DotsHorizontalCircleOutline.vue';
 import Bell from 'vue-material-design-icons/BellOutline.vue';
+import Pen from 'vue-material-design-icons/PencilOutline.vue';
+
 const { defaultTransition } = useTransition()
 // const props = defineProps({
 //     user:{
@@ -18,10 +20,10 @@ const { signOut } = useSupabaseAuth()
 <template>
     <div class="h-screen  flex flex-col ">
 
-        <div class="p-2 my-2 rounded-full hover:bg-emerald-300 w-min" :class="defaultTransition">
-            <Nuxt-link to="/">
+        <div class="p-2 mt-2 rounded-full text-[#4CAF50] text-xl font-bold w-min" :class="defaultTransition">
+            <Nuxt-link to="/userdashboard">
                 <div class="w-8 h-8">
-                    <div>AltDev</div>
+                    <div class='mr-5' >AltDev</div>
                 </div>
             </Nuxt-link>
         </div>
@@ -88,7 +90,7 @@ const { signOut } = useSupabaseAuth()
             <NuxtLink to='/new'>
             <SidebarLeftTab active>
                 <template v-slot:icon>
-                    <More />
+                    <Pen />
                 </template>
                 <template v-slot:name>
                     Write

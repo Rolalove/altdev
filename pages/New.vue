@@ -107,13 +107,13 @@ const handlePost = async () => {
   <div>
     <nav>
       <div class="flex px-10 py-2 items-center">
-        <h1 class="text-[#408a43] text-2xl font-bold">Altdev</h1>
+        <h1 class="text-[#4CAF50] text-2xl font-bold">Altdev</h1>
         <p class="ml-5 text-lg">New Post alert</p>
       </div>
       <div></div>
     </nav>
     
-    <div class="mt-2 w-[70%] mx-auto">
+    <div class="mt-1 w-[70%] mx-auto">
       <div class="flex items-center mb-2">
         <input type="file" accept="image/*" @change="onImageChange" />
         <img v-if="imageUrl" :src="imageUrl" alt="Uploaded Image" class="w-20 h-10 rounded-full">
@@ -121,7 +121,7 @@ const handlePost = async () => {
       <div class="flex items-center mb-4">
         <input v-model="title" type="text" placeholder="Title" class="flex-1 border p-1 rounded">
       </div>
-      <input v-model='tags' placeholder='Tags (comma-seperated)' class="flex-1 border p-1 rounded"/>
+      <input v-model='tags' placeholder='Tags (comma-seperated)' class="flex-1 border mb-2 w-full p-1 rounded"/>
       <ClientOnly>
         <ToastuiEditor  ref="editorRef"
     v-model="content"
@@ -130,7 +130,7 @@ const handlePost = async () => {
   </ClientOnly>
      
       <div class="text-right mt-2">
-        <button @click='handlePost' class='px-10 text-lg font-bold border rounded-full py-2 bg-[#408a43]'>
+        <button @click='handlePost' class='px-10 text-lg font-bold border text-white rounded-full py-2 bg-[#4cAF50]'>
           Post
         </button>
       </div>

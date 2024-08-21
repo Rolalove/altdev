@@ -2,9 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useRoute } from 'vue-router'
-import { Viewer } from '@toast-ui/editor'
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+
 const supabase = useSupabaseClient()
 const route = useRoute()
+const md = new MarkdownIt()
 
 interface Post {
   id: number;
@@ -34,6 +37,7 @@ const post = ref<Post | null>(null)
 const comments = ref<Comment[]>([])
 const newComment = ref('')
 const viewerRef = ref(null)
+const renderedContent = ref('')
 
 const fetchPost = async () => {
   const { data, error } = await supabase
@@ -45,12 +49,9 @@ const fetchPost = async () => {
   if (error) console.error('Error fetching post:', error)
   else {
     post.value = data
+    renderedContent.value = DOMPurify.sanitize(md.render(post.value.content))
     incrementViews()
-    nextTick(() => {
-      if (viewerRef.value) {
-        viewerRef.value.invoke('setMarkdown', post.value.content)
-      }
-    })
+  
   }
 }
 
@@ -111,17 +112,23 @@ onMounted(() => {
 
 <template>
   <div v-if="post" class="max-w-4xl mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-4">{{ post.title }}</h1>
-    <img v-if="post.image_path" :src="post.image_path" alt="Post image" class="w-full h-64 object-cover mb-6">
-    <Viewer ref="viewerRef" class="mb-6" />
+    <h1 class="text-3xl font-bold mb-5">{{ post.title }}</h1>
+    <img v-if="post.image_path" :src="post.image_path" alt="Post image" class="w-full h-64 object-cover rounded mb-6">
+    <div v-html="renderedContent" class="mb-6"></div>
     
     <div class="flex justify-between items-center mb-6">
-      <button @click="likePost" class="bg-blue-500 text-white px-4 py-2 rounded">
-        Like ({{ post.likes || 0 }})
-      </button>
-      <button @click="sharePost" class="bg-green-500 text-white px-4 py-2 rounded">
-        Share ({{ post.shares || 0 }})
-      </button>
+      <button @click="likePost(post.id)" class="flex items-center space-x-1">
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" :class="post.liked ? 'text-red-500 fill-current' : 'text-gray-400'" viewBox="0 0 24 24" :fill="post.liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+  </svg>
+  <span class="text-sm text-gray-500">{{ post.likes || 0 }}</span>
+</button>
+<button @click="sharePost(post.id)" class="flex items-center space-x-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          <span class="text-sm text-gray-500">{{ post.shares || 0 }}</span>
+        </button>
       <button @click="bookmarkPost" class="bg-purple-500 text-white px-4 py-2 rounded">
         Bookmark ({{ post.bookmarks || 0 }})
       </button>

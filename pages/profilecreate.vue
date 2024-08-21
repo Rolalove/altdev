@@ -1,10 +1,94 @@
+<script setup lang='ts'>
+import { useSupabaseUser, useSupabaseClient } from '#imports'
+import { ref } from 'vue'
+
+const user = useSupabaseUser()
+const supabase = useSupabaseClient()
+const profile = ref({})
+const editedProfile = ref({})
+const isUploading = ref(false)
+const isUpdating = ref(false)
+const isLoading = ref(true)
+const defaultAvatarUrl = '/path/to/default/avatar.png'
+
+const fetchProfile = async () => {
+  isLoading.value = true
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.value.id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching profile:', error)
+  } else {
+    profile.value = data || {}
+    editedProfile.value = { ...data } || {}
+  }
+  isLoading.value = false
+}
+
+const updateProfile = async () => {
+  isUpdating.value = true
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(editedProfile.value)
+    .eq('id', user.value.id)
+
+  if (error) {
+    console.error('Error updating profile:', error)
+    alert('Failed to update profile. Please try again.')
+  } else {
+    profile.value = data
+    alert('Profile updated successfully!')
+  }
+  isUpdating.value = false
+}
+
+const uploadAvatar = async (event) => {
+  const file = event.target.files[0]
+  isUploading.value = true
+
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`
+  const filePath = `${user.value.id}/${fileName}`
+
+  let { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(filePath, file)
+
+  if (uploadError) {
+    console.error('Error uploading avatar:', uploadError)
+    alert('Failed to upload avatar. Please try again.')
+    isUploading.value = false
+    return
+  }
+
+  const { data } = supabase.storage.from('avatars').getPublicUrl(filePath)
+
+  editedProfile.value.avatar_url = data.publicUrl
+  await updateProfile()
+
+  isUploading.value = false
+}
+
+const profileCompletionPercentage = computed(() => {
+  const fields = ['username', 'bio', 'website', 'avatar_url', 'twitter', 'linkedin', 'github',]
+  const filledFields = fields.filter(field => editedProfile.value[field])
+  return Math.round((filledFields.length / fields.length) * 100)
+})
+
+fetchProfile()
+</script>
+
 <template>
   <div class="profile-container">
     <div v-if="isLoading">Loading profile...</div>
     <div v-else class="profile-card">
       <div class="avatar-container">
-        <img :src="profile?.avatar_url || defaultAvatarUrl" alt="Avatar" class="avatar-preview" />
-        <input type="file" @change="uploadAvatar" accept="image/*" :disabled="isUploading" id="avatar-upload" class="hidden" />
+        <img :src="profile?.avatar_url || defaultAvatarUrl" alt="Avatar" class="avatar-preview" loading='lazy' />
+        <input type="file" @change="uploadAvatar" accept="image/*" :disabled="isUploading" id="avatar-upload"
+          class="hidden" />
         <label for="avatar-upload" class="avatar-upload-label">
           {{ isUploading ? 'Uploading...' : 'Change Avatar' }}
         </label>
@@ -45,13 +129,13 @@
 </template>
 
 
+
 <style scoped>
 .profile-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f0f0f0;
   padding: 20px;
 }
 
@@ -112,7 +196,8 @@ label {
   font-weight: bold;
 }
 
-input, textarea {
+input,
+textarea {
   width: 100%;
   padding: 8px;
   border: 1px solid #ddd;

@@ -1,5 +1,6 @@
 <script setup lang='ts'>
 import { useSupabaseAuth } from '@/composables/useAuth'
+import {ref, computed} from 'vue'
 
 const { signUp, signInWithOAuth } = useSupabaseAuth()
 
@@ -7,6 +8,16 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const errorMessage = ref('')
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+const togglePasswordVisibility = (field: 'password' | 'confirmPassword') => {
+    if (field === 'password') {
+        showPassword.value = !showPassword.value
+    } else {
+        showConfirmPassword.value = !showConfirmPassword.value
+    }
+}
 
 const isEmailValid = computed(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -50,33 +61,70 @@ const signInWithGithub = () => signInWithOAuth('github')
                 <h3 class="text-lg font-bold ">Create your account to start exploring. </h3>
                 <form @submit.prevent="handleSignUp" class="block">
                     <div>
-                        <input v-model="email" class="w-[100%] h-[5vh] focus:outline-none border mt-5 py-3 px-1"
+                        <input v-model="email" class="w-[100%] h-[5vh] focus:outline-none border mt-5  py-3 px-1"
                             type="email" placeholder="Enter Email" required>
                         <p v-if="email && !isEmailValid" class="text-red-500 text-sm mt-1">Please enter a valid email
                             address.</p>
                     </div>
 
-                    <div>
-                        <input v-model="password" class="w-[100%] h-[5vh] focus:outline-none border mt-5 py-2 px-1"
-                            type="password" placeholder="Enter Your Password" required>
+                    <div class="relative">
+                        <input v-model="password" :type="showPassword ? 'text' : 'password'"
+                            class="w-[100%] h-[5vh] focus:outline-none border mt-5 pr-10 py-3 px-1"
+                            placeholder="Enter Your Password" required>
+                        <button type="button" class="absolute right-3 mt-2.5 top-1/2 transform -translate-y-1/2"
+                            @click="togglePasswordVisibility('password')">
+                            <svg v-if="!showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
+
+
                         <p v-if="password && !isPasswordValid" class="text-red-500 text-sm mt-1">Password must be at
                             least 8 characters long.</p>
                     </div>
 
-                    <div>
-                        <input v-model="confirmPassword"
-                            class="w-[100%] h-[5vh] focus:outline-none border mt-5 py-2 px-1" type="password"
+                    <div class="relative">
+                        <input v-model="confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
+                            class="w-[100%] h-[5vh] focus:outline-none border pr-10 mt-5 py-3 px-1"
                             placeholder="Confirm Password" required>
+                        <button type="button" class="absolute right-3 mt-2.5 top-1/2 transform -translate-y-1/2"
+                            @click="togglePasswordVisibility('confirmPassword')">
+                            <svg v-if="!showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="24"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+                                </path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </button>
                         <p v-if="confirmPassword && !doPasswordsMatch" class="text-red-500 text-sm mt-1">Passwords do
                             not match.</p>
                     </div>
 
-                    <button type="submit" class="w-full rounded bg-[#408a43] py-1 text-lg font-semibold mt-5"
+                    <button type="submit" class="w-full rounded bg-[#4CAF50] py-1 text-white text-lg font-semibold mt-5"
                         :disabled="!isFormValid">Sign Up</button>
                     <p v-if="errorMessage" class="text-red-500 mt-2">{{ errorMessage }}</p>
                 </form>
                 <div class="container ">
-                    <p class="title text-center mt-3 max-md:text-[10px]">or continue with me</p>
+                    <p class="title text-center mt-3 max-md:text-[10px]">or continue with </p>
                 </div>
                 <div class="w-full flex items-center justify-center rounded border py-2 mt-3 text-sm font-semibold">
                     <img src="/public/logos_google-icon.svg" alt="Github logo" />
@@ -91,7 +139,7 @@ const signInWithGithub = () => signInWithOAuth('github')
                     </button>
                 </div>
                 <div>
-                    <p class="text-sm mt-3">Already have an account? <span class="text-[#408a43] font-medium">
+                    <p class="text-sm mt-3">Already have an account? <span class="text-[#4CAF50] font-medium">
                             <NuxtLink to="/login">Sign In</NuxtLink>
                         </span></p>
                 </div>

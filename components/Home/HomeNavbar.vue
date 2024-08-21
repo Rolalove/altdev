@@ -29,6 +29,7 @@ const toggleMenu = (): void => {
             class="flex justify-between  px-5 py-2 border rounded-full w-[95%] mx-auto mt-3 border-black font-bold items-center">
            
             <div>
+              <SearchBar :posts="posts"/>
                 <NuxtLink class="text-[#408a43] text-xl" to="/">Altdever</NuxtLink>
                
             </div>
