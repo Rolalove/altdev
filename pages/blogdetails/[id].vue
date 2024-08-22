@@ -2,13 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useSupabaseClient } from '#imports'
 import { useRoute } from 'vue-router'
-<<<<<<< HEAD
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
-
-=======
-import Viewer from '@toast-ui/editor/dist/toastui-editor-viewer'
->>>>>>> fa5decf8b2945f505131352282c71ac859b943be
 const supabase = useSupabaseClient()
 const route = useRoute()
 const md = new MarkdownIt()
