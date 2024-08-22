@@ -10,7 +10,7 @@
             </div>
 
             <!--maincontent-->
-            <main class="col-span-12  md:col-span-8 xl:col-span-6 ">
+            <main class="col-span-12 px-2 md:col-span-8 xl:col-span-6 ">
               <div class="mb-3"><Home/></div>
                 
                 

@@ -8,7 +8,7 @@ interface Database {
         Row: {
           id: number
           title: string
-          content: string // This will store markdown content
+          content: string 
           image_path: string | null
           author_id: string
           author_username: string
@@ -18,7 +18,7 @@ interface Database {
         }
         Insert: {
           title: string
-          content: string // This will store markdown content
+          content: string 
           image_path?: string | null
           author_id: string
           author_username: string
@@ -35,7 +35,7 @@ const content = ref<string>('')
 const tags = ref<string>('')
 const imageFile = ref<File | null>(null)
 const imageUrl = ref<string>('')
-  const editorRef = ref(null)
+const editorRef = ref(null)
 
 
 const onImageChange = (event: Event) => {
@@ -108,7 +108,7 @@ const handlePost = async () => {
     <nav>
       <div class="flex px-10 py-2 items-center">
         <h1 class="text-[#4CAF50] text-2xl font-bold">Altdev</h1>
-        <p class="ml-5 text-lg">New Post alert</p>
+        <p class="ml-10 text-lg">New Post alert</p>
       </div>
       <div></div>
     </nav>
