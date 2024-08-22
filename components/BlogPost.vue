@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useSupabaseClient } from '#imports'
-
-
+import MarkdownIt from 'markdown-it'
+import DOMPurify from 'dompurify'
+const md = new MarkdownIt()
 
 interface Post {
   id: number;
@@ -13,16 +14,39 @@ interface Post {
   shares: number;
   comments: number;
   bookmarks: number;
+  views: number;
   created_at: string;
+  author_id: string;
   author_username: string;
   author_avatar: string;
   liked: boolean;
-  shared: boolean;
   bookmarked: boolean;
 }
 
 const supabase = useSupabaseClient()
 const posts = ref<Post[]>([])
+  const user = useSupabaseUser()
+const renderedContent = ref('')
+const fetchUserInteractions = async (postIds: number[]) => {
+  if (!user.value) return {}
+
+  const { data, error } = await supabase
+    .from('user_interactions')
+    .select('post_id, liked, bookmarked, viewed')
+    .eq('user_id', user.value.id)
+    .in('post_id', postIds)
+
+  if (error) {
+    console.error('Error fetching user interactions:', error)
+    return {}
+  }
+
+  return data.reduce((acc, interaction) => {
+    acc[interaction.post_id] = interaction
+    return acc
+  }, {})
+}
+
 
 const fetchPosts = async () => {
   const { data, error } = await supabase
@@ -35,101 +59,109 @@ const fetchPosts = async () => {
 
   if (error) console.error('Error fetching posts:', error)
   else {
+    const postIds = data.map(post => post.id)
+    const userInteractions = await fetchUserInteractions(postIds)
+   
     posts.value = data.map(post => ({
       ...post,
       author_id: post.profiles?.id,
       author_username: post.author?.username || 'Anonymous',
       author_avatar: post.author?.avatar_url,
-      liked: false,
-      shared: false,
-      bookmarked: false
+      liked: userInteractions[post.id]?.liked || false,
+      bookmarked: userInteractions[post.id]?.bookmarked || false
     }))
   }
 }
 
-const interactWithPost = async (postId: number, action: 'likes' | 'shares' | 'bookmarks') => {
-  const postIndex = posts.value.findIndex(p => p.id === postId);
-  if (postIndex === -1) return;
+const updateUserInteraction = async (postId: number, action: 'liked' | 'bookmarked' | 'viewed', value: boolean) => {
+  if (!user.value) return
 
-  const post = posts.value[postIndex];
-  const actionState = action.slice(0, -1) + 'ed' as 'liked' | 'shared' | 'bookmarked';
+  const { data, error } = await supabase
+    .from('user_interactions')
+    .upsert({
+      user_id: user.value.id,
+      post_id: postId,
+      [action]: value
+    }, {
+      onConflict: 'user_id, post_id'
+    })
 
-  if (action === 'likes' || action === 'bookmarks') {
-    const newValue = post[actionState] ? post[action] - 1 : post[action] + 1;
-    const newState = !post[actionState];
+  if (error) console.error(`Error updating user interaction (${action}):`, error)
+}
 
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .update({ [action]: newValue })
-      .eq('id', postId)
-      .single();
+const interactWithPost = async (postId: number, action: 'likes' | 'bookmarks') => {
+  if (!user.value) {
+    alert('Please log in to interact with posts')
+    return
+  }
 
-    if (error) console.error(`Error ${action} post:`, error);
-    else {
-      posts.value[postIndex] = {
-        ...posts.value[postIndex],
-        [action]: newValue,
-        [actionState]: newState
-      };
-    }
-  } else if (action === 'shares') {
-    const newValue = post[action] + 1;
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .update({ [action]: newValue })
-      .eq('id', postId)
-      .single();
+  const postIndex = posts.value.findIndex(p => p.id === postId)
+  if (postIndex === -1) return
 
-    if (error) console.error(`Error ${action} post:`, error);
-    else {
-      posts.value[postIndex] = {
-        ...posts.value[postIndex],
-        [action]: newValue,
-        [actionState]: true
-      };
+  const post = posts.value[postIndex]
+  const actionState = action === 'likes' ? 'liked' : 'bookmarked'
+
+  const newState = !post[actionState]
+  const increment = newState ? 1 : -1
+
+  // Update user_interactions
+  await updateUserInteraction(postId, actionState, newState)
+
+  // Update blog_posts
+  const { data, error } = await supabase
+    .rpc('increment_post_interaction', {
+      post_id: postId,
+      interaction_type: action,
+      increment_value: increment
+    })
+
+  if (error) {
+    console.error(`Error updating post ${action}:`, error)
+  } else {
+    posts.value[postIndex] = {
+      ...posts.value[postIndex],
+      [action]: data[action],
+      [actionState]: newState
     }
   }
 }
 
-const bookmarkPost = async (postId: number) => {
-  const postIndex = posts.value.findIndex(p => p.id === postId);
-  if (postIndex === -1) return;
+const incrementViews = async (postId: number) => {
+  if (!user.value) return
 
-  const post = posts.value[postIndex];
-  const newBookmarkedState = !post.bookmarked;
+  await updateUserInteraction(postId, 'viewed', true)
 
   const { data, error } = await supabase
-    .from('blog_posts')
-    .update({ bookmarks: newBookmarkedState ? post.bookmarks + 1 : post.bookmarks - 1 })
-    .eq('id', postId)
-    .single();
+    .rpc('increment_post_interaction', {
+      post_id: postId,
+      interaction_type: 'views',
+      increment_value: 1
+    })
 
-  if (error) {
-    console.error('Error updating bookmark state:', error);
-  } else {
-    posts.value[postIndex] = {
-      ...posts.value[postIndex],
-      bookmarked: newBookmarkedState,
-      bookmarks: data.bookmarks
-    };
+  if (error) console.error('Error incrementing views:', error)
+  else {
+    const postIndex = posts.value.findIndex(p => p.id === postId)
+    if (postIndex !== -1) {
+      posts.value[postIndex].views = data.views
+    }
   }
-};
-const sharePost = (postId: number) => {
-  const post = posts.value.find(p => p.id === postId);
-  if (!post) return;
+}
+const likePost = (postId: number) => interactWithPost(postId, 'likes')
+const bookmarkPost = (postId: number) => interactWithPost(postId, 'bookmarks')
 
-  const url = `${window.location.origin}/blogdetails/${post.id}`;
+const sharePost = (postId: number) => {
+  const post = posts.value.find(p => p.id === postId)
+  if (!post) return
+
+  const url = `${window.location.origin}/blogdetails/${post.id}`
   navigator.clipboard.writeText(url)
     .then(() => {
-      alert('Post URL copied to clipboard');
-      interactWithPost(postId, 'shares');
+      alert('Post URL copied to clipboard')
     })
     .catch((error) => {
-      console.error('Failed to copy post URL to clipboard:', error);
-    });
-};
-const likePost = (postId: number) => interactWithPost(postId, 'likes')
-
+      console.error('Failed to copy post URL to clipboard:', error)
+    })
+}
 
 onMounted(() => {
   fetchPosts();
@@ -158,10 +190,9 @@ onMounted(() => {
 });
 
 </script>
-
 <template>
   <div>
-    <div class="bg-white  rounded-lg shadow-md p-4 mb-6 sm:p-6" v-for="post in posts" :key="post.id">
+    <div class="bg-white rounded-lg shadow-md p-4 mb-6 sm:p-6" v-for="post in posts" :key="post.id">
       <div class="flex items-center mb-4">
         <img :src="post.author_avatar" alt="Author avatar" class="w-8 h-8 rounded-full mr-3 sm:w-10 sm:h-10 sm:mr-4">
         <div>
@@ -172,10 +203,11 @@ onMounted(() => {
         </div>
       </div>
       <h2 class="text-xl font-bold text-gray-800 mb-4 sm:text-2xl">
-        <NuxtLink :to="`/blogdetails/${post.id}`">{{ post.title }}</NuxtLink>
+        <NuxtLink :to="`/blogdetails/${post.id}`" @click="incrementViews(post.id)">{{ post.title }}</NuxtLink>
       </h2>
-      <img v-if="post.image_path" :src="post.image_path" alt="Post image" class="mb-4 w-full h-48 object-fit sm:h-64">
-      <div v-html="post.content.substring(0, 200) + '...'" class="text-sm sm:text-base"></div>
+      <img v-if="post.image_path" :src="post.image_path" alt="Post image" class="mb-4 w-full h-48 object-cover sm:h-64">
+      <div v-html="post.renderedContent.substring(0, 200) + '...'" class="text-sm sm:text-base mb-4" ></div>
+      <!-- <div v-html="post.content.substring(0, 200) + '...'" class="text-sm sm:text-base mb-4"></div> -->
       <div class="flex justify-between items-center mt-6">
         <button @click="likePost(post.id)" class="flex items-center space-x-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8" :class="post.liked ? 'text-red-500 fill-current' : 'text-gray-400'" viewBox="0 0 24 24" :fill="post.liked ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
@@ -201,6 +233,13 @@ onMounted(() => {
           </svg>
           <span class="text-sm text-gray-500 sm:text-base">{{ post.bookmarks || 0 }}</span>
         </button>
+        <div class="flex items-center space-x-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-8 sm:w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span class="text-sm text-gray-500 sm:text-base">{{ post.views || 0 }}</span>
+        </div>
       </div>
     </div>
   </div>

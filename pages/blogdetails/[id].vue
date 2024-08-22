@@ -5,7 +5,6 @@ import { useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 const supabase = useSupabaseClient()
-const route = useRoute()
 const md = new MarkdownIt()
 
 interface Post {
@@ -35,7 +34,7 @@ interface Comment {
 const post = ref<Post | null>(null)
 const comments = ref<Comment[]>([])
 const newComment = ref('')
-const viewerRef = ref(null)
+// const viewerRef = ref(null)
 const renderedContent = ref('')
 
 const fetchPost = async () => {
