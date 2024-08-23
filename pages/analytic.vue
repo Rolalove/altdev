@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient, useSupabaseUser } from '#imports'
 import Chart from 'chart.js/auto'
 
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+
 const analytics = ref({
   followers: 0,
   following: 0,
@@ -14,73 +16,73 @@ const analytics = ref({
   shares: 0
 })
 
-const fetchUserStats = async (userId) => {
-  let { data, error } = await supabase
+const fetchUserStats = async () => {
+  if (!user.value) {
+    console.error('No user is signed in')
+    return
+  }
+
+  const userId = user.value.id
+
+  // Fetch followers
+  const { count: followers, error: followersError } = await supabase
+    .from('followers')
+    .select('*', { count: 'exact', head: true })
+    .eq('followed_id', userId)
+  
+  if (followersError) console.error('Error fetching followers:', followersError)
+  else analytics.value.followers = followers || 0
+
+  // Fetch following
+  const { count: following, error: followingError } = await supabase
+    .from('followers')
+    .select('*', { count: 'exact', head: true })
+    .eq('follower_id', userId)
+  
+  if (followingError) console.error('Error fetching following:', followingError)
+  else analytics.value.following = following || 0
+
+  // Fetch likes, posts, comments, shares
+  let { data: userStats, error: userStatsError } = await supabase
     .from('user_stats')
     .select('likes, posts, comments, shares')
     .eq('user_id', userId)
-    .single();
-
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // No data found, let's insert default values
+    .single()
+  
+  if (userStatsError) {
+    if (userStatsError.code === 'PGRST116') {
+      // No data found, insert default values
       const { data: insertData, error: insertError } = await supabase
         .from('user_stats')
         .insert({ user_id: userId, likes: 0, posts: 0, comments: 0, shares: 0 })
         .select()
-        .single();
+        .single()
 
       if (insertError) {
-        console.error('Error inserting user stats:', insertError);
-        return { likes: 0, posts: 0, comments: 0, shares: 0 };
+        console.error('Error inserting user stats:', insertError)
+        userStats = { likes: 0, posts: 0, comments: 0, shares: 0 }
+      } else {
+        userStats = insertData
       }
-      return insertData;
     } else {
-      console.error('Error fetching user stats:', error);
-      return { likes: 0, posts: 0, comments: 0, shares: 0 };
+      console.error('Error fetching user stats:', userStatsError)
+      userStats = { likes: 0, posts: 0, comments: 0, shares: 0 }
     }
-  } return data;
-  // Fetch followers
-  const { data: followers, error: followersError } = await supabase
-    .from('followers')
-    .select('count', { count: 'exact' })
-    .eq('followed_id', user.id)
-  
-  if (followersError) console.error('Error fetching followers:', followersError)
-  else analytics.value.followers = followers[0].count
-
-  // Fetch following
-  const { data: following, error: followingError } = await supabase
-    .from('followers')
-    .select('count', { count: 'exact' })
-    .eq('follower_id', user.id)
-  
-  if (followingError) console.error('Error fetching following:', followingError)
-  else analytics.value.following = following[0].count
-
-  // Fetch likes, posts, comments, shares
-  const { data: userStats, error: userStatsError } = await supabase
-    .from('user_stats')
-    .select('likes, posts, comments, shares')
-    .eq('user_id', user.id)
-    .single()
-  
-  if (userStatsError) console.error('Error fetching user stats:', userStatsError)
-  else {
-    analytics.value.likes = userStats.likes
-    analytics.value.posts = userStats.posts
-    analytics.value.comments = userStats.comments
-    analytics.value.shares = userStats.shares
   }
 
+  analytics.value.likes = userStats.likes
+  analytics.value.posts = userStats.posts
+  analytics.value.comments = userStats.comments
+  analytics.value.shares = userStats.shares
+
   // Fetch bookmarks
-  const { data: bookmarks, error: bookmarksError } = await supabase
+  const { count: bookmarks, error: bookmarksError } = await supabase
     .from('bookmarks')
-    .select('count', { count: 'exact' })
-    .eq('user_id', user.id)
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
   
   if (bookmarksError) console.error('Error fetching bookmarks:', bookmarksError)
-  else analytics.value.bookmarks = bookmarks[0].count
+  else analytics.value.bookmarks = bookmarks || 0
 }
 
 const createChart = () => {
@@ -123,29 +125,34 @@ const createChart = () => {
   })
 }
 
-onMounted(() => {
-  fetchAnalytics()
-  createChart()
+onMounted(async () => {
+  if (user.value) {
+    await fetchUserStats()
+    createChart()
+  } else {
+    console.error('No user is signed in')
+  }
 })
 </script>
-
-
 <template>
-    <div class="flex w-[100%] px-5 h-screen">
-      <div><SidebarLeft /></div>
-      <div class="bg-yellow ml-16 w-[80%]">
-        <h1 class="mt-5 text-3xl font-medium">Analytics</h1>
-        <div class='grid bg-yellow grid-cols-3 mt-5 mx-auto grid-row-3 gap-4 max-md:flex max-md:flex-col'>
-          <div v-for="(value, key) in analytics" :key="key" class="bg-white w-full h-[22vh] rounded-md shadow-lg p-4">
-            <h2 class="text-xl font-bold capitalize">{{ key }}</h2>
-            <p class="text-3xl mt-2">{{ value }}</p>
-          </div>
-          <div class="bg-white w-full h-[22vh] rounded-md shadow-lg">coming soon..</div>
-          <div class="bg-white w-full h-[22vh] rounded-md shadow-lg">coming soon..</div>
-        </div>
-        <div class="mt-8 bg-white p-4 rounded-md shadow-lg">
-          <canvas id="analyticsChart"></canvas>
+  <div>
+  <div class="flex w-[100%] px-5 h-screen">
+    <div><SidebarLeft /></div>
+    <div class="bg-yellow ml-16 w-[80%]">
+      <h1 class="mt-5 text-3xl font-medium">Your Analytics</h1>
+      <div v-if="user" class='grid bg-yellow grid-cols-3 mt-5 mx-auto grid-row-3 gap-4 max-md:flex max-md:flex-col'>
+        <div v-for="(value, key) in analytics" :key="key" class="bg-white w-full h-[22vh] rounded-md shadow-lg p-4">
+          <h2 class="text-xl font-bold capitalize">{{ key }}</h2>
+          <p class="text-3xl mt-2">{{ value }}</p>
         </div>
       </div>
+      <div v-else class="mt-5 text-xl">
+        Please sign in to view your analytics.
+      </div>
+      <div v-if="user" class="mt-8 bg-white p-4 rounded-md shadow-lg">
+        <canvas id="analyticsChart"></canvas>
+      </div>
     </div>
-  </template>
+  </div>
+</div>
+</template>

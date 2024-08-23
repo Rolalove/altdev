@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useSupabaseClient } from '#imports'
+import { useSupabaseClient,  useSupabaseUser  } from '#imports'
+
 
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 
 const trendingTopics = ref([])
 const usersToFollow = ref([])
+const followedUsers = ref(new Set())
 
 const fetchTrendingTopics = async () => {
   const { data, error } = await supabase
@@ -45,28 +48,47 @@ const fetchUsersToFollow = async () => {
     }))
   }
 }
+const fetchFollowedUsers = async () => {
+  if (user.value) {
+    const { data, error } = await supabase
+      .from('follows')
+      .select('followed_id')
+      .eq('follower_id', user.value.id)
+
+    if (!error && data) {
+      followedUsers.value = new Set(data.map(follow => follow.followed_id))
+    } else {
+      console.error('Error fetching followed users:', error)
+    }
+  }
+}
 
 onMounted(() => {
   fetchTrendingTopics()
   fetchUsersToFollow()
+  fetchFollowedUsers()
 })
 
 const followUser = async (userId) => {
-  const { data: existingFollow, error: existingFollowError } = await supabase
+  console.log('Current user:', user.value);
+  console.log('User to follow/unfollow:', userId);
+
+  const { data, error } = await supabase
     .from('follows')
     .select('*')
-    .eq('follower_id', supabase.auth.user().id)
-    .eq('followed_id', userId)
-    .single();
+    .eq('follower_id', user.value.id)
+    .eq('followed_id', userId);
 
-  if (existingFollowError) {
-    console.error('Error checking follow status:', existingFollowError);
+  if (error) {
+    console.error('Error checking follow status:', error);
     return;
   }
 
+  const existingFollow = data && data.length > 0 ? data[0] : null;
+
   if (!existingFollow) {
     const { error: createFollowError } = await supabase.from('follows').insert({
-      follower_id: supabase.auth.user().id,
+      follower_id: user.value.id,
       followed_id: userId,
     });
 
@@ -74,6 +96,7 @@ const followUser = async (userId) => {
       console.error('Error creating follow:', createFollowError);
     } else {
       console.log('Followed user:', userId);
+      followedUsers.value.add(userId);
     }
   } else {
     const { error: deleteFollowError } = await supabase
@@ -85,6 +108,7 @@ const followUser = async (userId) => {
       console.error('Error deleting follow:', deleteFollowError);
     } else {
       console.log('Unfollowed user:', userId);
+      followedUsers.value.delete(userId);
     }
   }
 };
@@ -116,13 +140,12 @@ const followUser = async (userId) => {
             </div>
           </div>
           <div class="flex h-full">
-            <button @click="toggleFollow(user.id)" :class="[
-            isFollowing ? 'bg-red-500 hover:bg-red-600' : 'bg-black hover:bg-gray-800',
-            'px-4 py-2 font-bold text-xs text-white rounded-full',
-          ]"
-        >
-          {{ isFollowing ? 'Unfollow' : 'Follow' }}
-              Follow
+            <button @click="followUser(user.id)" 
+                    :class="[
+                      followedUsers.has(user.id) ? 'bg-[#4CAF50] text-grey-50' : 'bg-[#4CAF50] text-white',
+                      'px-4 py-2 font-bold text-xs  rounded-full'
+                    ]">
+              {{ followedUsers.has(user.id) ? 'Unfollow' : 'Follow' }}
             </button>
           </div>
         </div>

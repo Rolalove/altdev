@@ -35,7 +35,7 @@ const toggleMenu = (): void => {
             </div>
             
             <NuxtLink class='hidden md:flex justify-between gap-7 text-lg' to="/new">Write</NuxtLink>
-            <button @click="toggleMenu" class="md:hidden text-[#408a43]">
+            <button @click="toggleMenu" class="md:hidden text-[#4CAF50]">
           <Hamburger/>
         </button>
 
