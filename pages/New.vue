@@ -48,10 +48,36 @@ const onImageChange = (event: Event) => {
 }
 
 const handlePost = async () => {
-  try {
+   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError) throw userError
     if (!user) throw new Error('User not authenticated')
+
+    // Check if the user's profile exists
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select()
+      .eq('id', user.id)
+      .single()
+
+    if (profileError && profileError.code !== 'PGRST116') {
+      // An error occurred other than "not found"
+      throw profileError
+    }
+
+    if (!profile) {
+      // Profile doesn't exist, create it
+      const { error: createProfileError } = await supabase
+        .from('profiles')
+        .insert({ 
+          id: user.id, 
+          username: user.user_metadata.username || user.email?.split('@')[0] || 'Anonymous',
+          avatar_url: user.user_metadata.avatar_url
+        })
+
+      if (createProfileError) throw createProfileError
+    }
+
 
     let image_path: string | null = null
     if (imageFile.value) {
