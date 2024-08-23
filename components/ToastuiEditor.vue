@@ -46,9 +46,9 @@ defineExpose({
 </script>
 
 <template>
-  <ClientOnly>
+
     <div ref="editorElement"></div>
-  </ClientOnly>
+
 </template>
 
 

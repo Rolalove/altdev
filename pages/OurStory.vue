@@ -2,7 +2,7 @@
   const storyItems = [
     {
       title: 'The Altdev Vision',
-    //   image: '/images/vision.jpg',
+    image: '/images/vision.jpg',
       description:
         `Altdev was created to provide a text-focused, community-driven platform for authors and readers to connect, discover, and engage with high-quality content.`,
     },
@@ -20,7 +20,7 @@
     },
     {
       title: 'Our Values',
-    //   image: '/images/values.jpg',
+     image: '/images/values.jpg',
       description:
         `Altdev's core values of fostering a welcoming community, empowering authors, and prioritizing content quality guide everything we do.`,
     },

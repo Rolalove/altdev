@@ -5,14 +5,9 @@ import Account from 'vue-material-design-icons/AccountOutline.vue';
 import More from 'vue-material-design-icons/DotsHorizontalCircleOutline.vue';
 import Bell from 'vue-material-design-icons/BellOutline.vue';
 import Pen from 'vue-material-design-icons/PencilOutline.vue';
-
-const { defaultTransition } = useTransition()
-// const props = defineProps({
-//     user:{
-//         type: Object,
-//         required: true
-//     }
-// })
+import Magnify from 'vue-material-design-icons/Magnify.vue';
+import Analytics from 'vue-material-design-icons/ViewDashboardOutline.vue';
+import Logout from 'vue-material-design-icons/Logout.vue';
 import { useSupabaseAuth } from '@/composables/useAuth'
 const { signOut } = useSupabaseAuth()
 
@@ -41,16 +36,19 @@ const { signOut } = useSupabaseAuth()
         </div>
 
         <div class="mt-2 space-y-3 ">
+          <Nuxt-link to="/explore">
             <SidebarLeftTab active>
                 <template v-slot:icon>
-                    <Bookmark />
+                    <Magnify />
                 </template>
                 <template v-slot:name>
-                    Bookmarks
+                    Explore
                 </template>
             </SidebarLeftTab>
+              </Nuxt-link>
         </div>
         <div class="mt-2 space-y-3 ">
+        <Nuxt-link to="/notification">
             <SidebarLeftTab active>
                 <template v-slot:icon>
                     <Bell />
@@ -58,7 +56,9 @@ const { signOut } = useSupabaseAuth()
                 <template v-slot:name>
                     Notification
                 </template>
+               
             </SidebarLeftTab>
+             </Nuxt-link>
         </div>
 
         
@@ -78,7 +78,7 @@ const { signOut } = useSupabaseAuth()
              <NuxtLink to="/analytic">
             <SidebarLeftTab active>
                 <template v-slot:icon>
-                    <More />
+                    <Analytics />
                 </template>
                 <template v-slot:name>
                     Analytics
@@ -102,7 +102,7 @@ const { signOut } = useSupabaseAuth()
             <button  @click="signOut">
             <SidebarLeftTab active>
                 <template v-slot:icon>
-                    <More />
+                    <Logout />
                 </template>
                 <template v-slot:name >
                     Logout
@@ -113,18 +113,7 @@ const { signOut } = useSupabaseAuth()
         </div>
 
 
-
-        <div classs="flex flex row items-center justify-center px-2 py-2 mx-auto mt-auto mb-5 rounded-full cursor-pointer w-14 xl:w-full hover:bg-gray-100 "
-            :class="defaultTransition">
-            <div class="flex flex-row">
-                <img  class="w-10 h-10 rounded-full"  alt="userprofilepicture">
-
-            </div>
-        </div>
-
-
     </div>
 
 </template>
 
-// const {defaultTransition } = UseTailwindConfig()

@@ -8,12 +8,12 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { name: 'Home', path: '/userdashboard' },
-  { name: 'Bookmarks', path: '/' },
-  { name: 'Notification', path: '/' },
+  { name: 'Explore', path: '/explore' },
+  { name: 'Notification', path: '/notification' },
   { name: 'Write', path: '/new' },
   { name: 'Profile', path: '/profilecreate' },
-  { name: 'Analytics', path: '/analytics' },
-  { name: 'Logout', path: '/new' },
+  { name: 'Analytics', path: '/analytic' },
+  { name: 'Logout', path: '/index' },
 ]
 
 const isMenuOpen = ref<boolean>(false)
@@ -30,7 +30,7 @@ const toggleMenu = (): void => {
            
             <div>
              
-                <NuxtLink class=" text-xl" to="/">Feed</NuxtLink>
+                <NuxtLink class=" text-xl" to="/userdashboard">Feed</NuxtLink>
                
             </div>
             
