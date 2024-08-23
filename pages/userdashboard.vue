@@ -1,4 +1,3 @@
-
 <template>
     <div class='min-h-full'>
         <div class="grid grid-cols-12 mx-auto sm:px-6 lg:max-w-8xl lg:px-8 lg:gap-5">
@@ -8,18 +7,10 @@
                     <SidebarLeft />
                 </div>
             </div>
-
             <!--maincontent-->
             <main class="col-span-12 px-2 md:col-span-8 xl:col-span-6 ">
               <div class="mb-3"><Home/></div>
-                
-                
                   <BlogPost  />
-      <!-- Display post details -->
-  
-               
-   
-               
 
             </main>
 
@@ -30,16 +21,8 @@
                     <SidebarRight/>
                 </div>
             </div>
-
-
-
-
-
         </div>
-
     </div>
 </template>
 
 
-
-<style scoped></style>
