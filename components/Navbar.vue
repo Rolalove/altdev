@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Hamburger from 'vue-material-design-icons/Menu.vue';
+import { ref } from 'vue'
 
 interface MenuItem {
   name: string;
@@ -24,7 +25,7 @@ const toggleMenu = (): void => {
     <nav
       class="flex justify-between px-4 md:px-10 py-3 border border-slate-800 rounded-full w-[95%] mx-auto mt-3  font-bold items-center">
       <div>
-        <NuxtLink class="text-[#4CAF50] text-2xl" to="/">AltDev</NuxtLink>
+        <NuxtLink class="text-[#4CAF50] text-2xl" to="/" data-testid="logo">AltDev</NuxtLink>
       </div>
 
       <!-- Desktop menu -->
@@ -38,7 +39,7 @@ const toggleMenu = (): void => {
       </div>
 
       <!-- Hamburger menu button -->
-      <button @click="toggleMenu" class="md:hidden text-[#4CAF50]">
+      <button @click="toggleMenu" class="md:hidden text-[#4CAF50]" data-testid="hamburger-button">
         <Hamburger />
       </button>
     </nav>
