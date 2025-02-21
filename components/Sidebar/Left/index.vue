@@ -8,12 +8,20 @@ import Pen from 'vue-material-design-icons/PencilOutline.vue';
 import Magnify from 'vue-material-design-icons/Magnify.vue';
 import Analytics from 'vue-material-design-icons/ViewDashboardOutline.vue';
 import Logout from 'vue-material-design-icons/Logout.vue';
-import { useSupabaseAuth } from '@/composables/useAuth'
-const { signOut } = useSupabaseAuth()
+import { useAuthStore } from '~/stores/auth' // Add this
+const authStore = useAuthStore() 
+const handleSignOut = async () => {
+  try {
+    await authStore.signOut()
+  } catch (error) {
+    console.error('Error signing out:', error)
+  }
+}
+
 
 </script>
 <template>
-    <div class="h-screen  flex flex-col ">
+    <div class="h-screen bg-white  flex flex-col ">
 
         <div class="p-2 mt-2 rounded-full text-[#4CAF50] text-xl font-bold w-min" :class="defaultTransition">
             <Nuxt-link to="/userdashboard">
@@ -99,18 +107,17 @@ const { signOut } = useSupabaseAuth()
         </NuxtLink>
         </div>
         <div class="mt-2 space-y-3 ">
-            <button  @click="signOut">
-            <SidebarLeftTab active>
-                <template v-slot:icon>
-                    <Logout />
-                </template>
-                <template v-slot:name >
-                    Logout
-                   
-                </template>
-            </SidebarLeftTab>
-            </button>
-        </div>
+    <button @click="handleSignOut"> <!-- Change to handleSignOut -->
+        <SidebarLeftTab active>
+            <template v-slot:icon>
+                <Logout />
+            </template>
+            <template v-slot:name>
+                Logout
+            </template>
+        </SidebarLeftTab>
+    </button>
+</div>
 
 
     </div>

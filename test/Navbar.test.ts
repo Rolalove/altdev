@@ -43,7 +43,7 @@ describe('NavBar', () => {
     expect(buttons[4].attributes('to')).toBe('/login')
     
     expect(buttons[5].text()).toBe('Get Started')
-    expect(buttons[5].attributes('to')).toBe('/login/signup')
+    expect(buttons[5].attributes('to')).toBe('/signup')
     expect(buttons[5].classes()).toContain('bg-[#4CAF50]')
   })
 
@@ -81,7 +81,7 @@ describe('NavBar', () => {
       { name: 'Trending', path: '/' },
       { name: 'Write', path: '/new' },
       { name: 'Sign In', path: '/login' },
-      { name: 'Get Started', path: '/login/signup' },
+      { name: 'Get Started', path: '/signup' },
     ]
     
     menuItems.forEach((item, index) => {

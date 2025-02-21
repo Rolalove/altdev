@@ -218,8 +218,8 @@ onMounted(() => {
 
 </script>
 <template>
-  <div>
-    <div v-if="loading" class="flex justify-center items-center h-64">
+  <div class="px-3 md:px-0">
+    <div v-if="loading" class="flex justify-center   items-center h-64">
       <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-[#4CAF50]"></div>
     </div>
     <div v-else class="bg-white rounded-lg shadow-md p-4 mb-6 sm:p-6" v-for="post in posts" :key="post.id">

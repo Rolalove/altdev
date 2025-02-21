@@ -121,7 +121,7 @@ const followUser = async (userId) => {
       <SidebarRightItem v-for="topic in trendingTopics" :key="topic.title">
         <NuxtLink :to="`/blogdetails/${topic.id}`">
         <div>
-          <h2 class="font-bold text-gray-800 text-md">{{ topic.title }}</h2>
+          <h2 class="font-bold text-gray-800  text-md">{{ topic.title }}</h2>
           <p class="text-xs text-gray-400">{{ topic.count }}</p>
         </div>
       </NuxtLink>
@@ -129,7 +129,7 @@ const followUser = async (userId) => {
     </SidebarRightCard>
 
     <!--Previewcard: Who to follow -->
-    <SidebarRightCard title="Altdever to follow">
+    <SidebarRightCard title="Developers to follow">
       <SidebarRightItem v-for="user in usersToFollow" :key="user.id">
         <div class="flex flex-row justify-between items-center p-2">
           <div class="flex flex-row">

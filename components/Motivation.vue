@@ -1,14 +1,16 @@
 <template>
-    <div class="text-[#64748B]">
-    <p class="text-center text-xl">"Altdev isn't just a platform, it's your launchpad. Own your content, build your audience, and shape the future of development"</p>
-    <div class="flex items-center mt-5 justify-center">
+    <div class="hidden lg:block  lg:bg-[#f8f9fa] lg:italic">
+    <p class="lg:text-center lg:text-[#333333]  lg:text-2xl ">"Altdev isn't just a platform, </p>
+    <p class="lg:text-center lg:text-[#333333]  lg:text-2xl "> it's your launchpad."</p>
+
+    <div class="lg:flex lg:flex-col lg:items-center lg:mt-5 lg:justify-center">
        <div class="">
         <img class="" src="/public/IMG_13434.jpg" alt="CEO Headshot" width="65px" aspect-ratio="1/1" />
        </div>
 
-        <div class="ml-6 text-lg ">
-            <h3 class='font-medium'>Kofoworola shonuyi</h3>
-            <p class='text-center'>CEO, AltDev</p>
+        <div class="lg:ml-6 lg:text-lg ">
+            <h3 class=' lg:text-base lg:font-bold'>Kofoworola shonuyi</h3>
+            <p class='lg:text-center lg:text-sm'>CEO, AltDev</p>
         </div>
     </div>
 </div>
